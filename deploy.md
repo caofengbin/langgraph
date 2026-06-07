@@ -20,22 +20,17 @@
 ```toml
 [project]
 name = "fitest-langgraph-checkpoint"    # 重命名，与官方隔离
-version = "4.1.1+mycorp"               # 基于官方 4.1.1 的定制版
+version = "4.1.1"               # 基于官方 4.1.1 的定制版
 ```
 
-`+` 后的内容为本地标识，不占用正常版本号序列：
-
-```
-  4.1.1  <  4.1.1+mycorp  <  4.1.2
-```
 
 ### 依赖端钉死版本
 
 ```toml
-"fitest-langgraph-checkpoint==4.1.1+mycorp"
+"fitest-langgraph-checkpoint==4.1.1"
 ```
 
-使用 `==` 精确匹配，无论官方发什么版本，pip 都只会安装你的 `4.1.1+mycorp`。
+使用 `==` 精确匹配，无论官方发什么版本，pip 都只会安装你的 `4.1.1`。
 
 > **注意**：当你决定基于新版官方 checkpoint 重新定制时，需要同步更新两端——checkpoint 的 `name` 和 `version`，以及 langgraph 的钉死依赖。
 
@@ -54,7 +49,7 @@ version = "4.1.1+mycorp"               # 基于官方 4.1.1 的定制版
 ```toml
 [project]
 name = "fitest-langgraph-checkpoint"  # 重命名，与官方隔离
-version = "4.1.1+mycorp"             # "+" 后为自定义标识，不占用正常版本号
+version = "4.1.1"             # "+" 后为自定义标识，不占用正常版本号
 ```
 
 > 版本号格式：`<官方版本>+<自定义标识>`，如 `4.1.1+mycorp`、`4.1.1+company1`。
@@ -87,12 +82,12 @@ twine upload -r internal dist/*
 ```toml
 [project]
 name = "fitest-langgraph"
-version = "1.2.4-fitest"
+version = "1.2.4"
 
 # ⚠️ 内部发布的包用重命名后的名字，官方包保持原名
 dependencies = [
     "langchain-core>=1.4.0,<2",
-    "fitest-langgraph-checkpoint==4.1.1+mycorp",   # 内部重命名版，钉死版本
+    "fitest-langgraph-checkpoint==4.1.1",   # 内部重命名版，钉死版本
     "langgraph-sdk>=0.4.2,<0.5.0",                 # 官方版本
     "langgraph-prebuilt>=1.1.0,<1.2.0",            # 官方版本
     "xxhash>=3.5.0",
@@ -127,7 +122,7 @@ twine upload -r internal dist/*
 必须按照依赖自底向上的顺序发布：
 
 1. **先发布** `libs/checkpoint` → 内部 PyPI 上 `fitest-langgraph-checkpoint` 发布 `4.1.1+mycorp`
-2. **再发布** `libs/langgraph` → 内部 PyPI 上 `fitest-langgraph` 发布 `1.2.4-fitest`
+2. **再发布** `libs/langgraph` → 内部 PyPI 上 `fitest-langgraph` 发布 `1.2.4+fitest`
 
 ---
 
@@ -229,17 +224,65 @@ pip install --index-url https://your-internal-pypi.com/simple/ \
 
 ### uv
 
+#### 方式一：单次命令安装
+
+```bash
+# --index 设内部源优先，--extra-index-url 设官方源兜底
+uv pip install \
+    --index-url https://your-internal-pypi.com/simple/ \
+    --extra-index-url https://pypi.org/simple/ \
+    fitest-langgraph
+```
+
+#### 方式二：项目级配置（推荐）
+
+在项目的 `pyproject.toml` 中声明索引优先级：
+
 ```toml
 # pyproject.toml
 [[tool.uv.index]]
 name = "internal"
 url = "https://your-internal-pypi.com/simple/"
+priority = "explicit"       # 只为显式指定的内部包查找此源
 
 [[tool.uv.index]]
 name = "pypi"
 url = "https://pypi.org/simple/"
+default = true              # 默认源，未指定源的包从这里装
+```
+
+然后正常安装：
+
+```bash
+uv add fitest-langgraph
+# 或
+uv pip install fitest-langgraph
+```
+
+#### 方式三：全局配置
+
+在 `~/.config/uv/uv.toml`（macOS/Linux）或 `%APPDATA%\uv\uv.toml`（Windows）中配置：
+
+```toml
+# ~/.config/uv/uv.toml
+[[index]]
+name = "internal"
+url = "https://your-internal-pypi.com/simple/"
+priority = "explicit"
+
+[[index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
 default = true
 ```
+
+配置后所有项目默认生效：
+
+```bash
+uv pip install fitest-langgraph
+```
+
+> **提示**：`priority = "explicit"` 意味着只有当包名在 `[[tool.uv.index]]` 中被显式指定时才去内部源查找，避免所有包都走内部源。如果希望内部源作为默认首选，可改为 `priority = "primary"`。
 
 ---
 

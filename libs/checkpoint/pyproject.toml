@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fitest-langgraph-checkpoint"
-version = "4.1.1+mycorp"        # 基于官方 4.1.1 的定制版
+version = "4.1.1"        # 基于官方 4.1.1 的定制版
 description = "Library with base interfaces for LangGraph checkpoint savers."
 authors = []
 requires-python = ">=3.10"
