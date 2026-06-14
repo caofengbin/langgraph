@@ -82,7 +82,7 @@ twine upload -r internal dist/*
 ```toml
 [project]
 name = "fitest-langgraph"
-version = "1.2.4"
+version = "1.2.5"
 
 # ⚠️ 内部发布的包用重命名后的名字，官方包保持原名
 dependencies = [
@@ -121,8 +121,8 @@ twine upload -r internal dist/*
 
 必须按照依赖自底向上的顺序发布：
 
-1. **先发布** `libs/checkpoint` → 内部 PyPI 上 `fitest-langgraph-checkpoint` 发布 `4.1.1+mycorp`
-2. **再发布** `libs/langgraph` → 内部 PyPI 上 `fitest-langgraph` 发布 `1.2.4+fitest`
+1. **先发布** `libs/checkpoint` → 内部 PyPI 上 `fitest-langgraph-checkpoint` 发布 `4.1.1`
+2. **再发布** `libs/langgraph` → 内部 PyPI 上 `fitest-langgraph` 发布 `1.2.5`
 
 ---
 
